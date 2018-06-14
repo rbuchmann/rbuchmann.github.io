@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rss version='2.0' xmlns:atom='http://www.w3.org/2005/Atom'>
+<channel>
+<atom:link href='http://rbuchmann.github.io' rel='self' type='application/rss+xml'/>
+<title>
+Bundled Fibres
+</title>
+<link>
+http://rbuchmann.github.io
+</link>
+<description>
+Math, programming and everything else
+</description>
+<lastBuildDate>
+Thu, 14 Jun 2018 03:02:05 +0200
+</lastBuildDate>
+<generator>
+clj-rss
+</generator>
+</channel>
+</rss>

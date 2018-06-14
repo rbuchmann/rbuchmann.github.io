@@ -1,0 +1,44 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<rss version='2.0' xmlns:atom='http://www.w3.org/2005/Atom'>
+<channel>
+<atom:link href='http://rbuchmann.github.io' rel='self' type='application/rss+xml'/>
+<title>
+Bundled Fibres
+</title>
+<link>
+http://rbuchmann.github.io
+</link>
+<description>
+Math, programming and everything else
+</description>
+<lastBuildDate>
+Thu, 14 Jun 2018 03:02:05 +0200
+</lastBuildDate>
+<generator>
+clj-rss
+</generator>
+<item>
+<guid>
+http://rbuchmann.github.io/blog/posts-output/2018-6-14-hello-world/
+</guid>
+<link>
+http://rbuchmann.github.io/blog/posts-output/2018-6-14-hello-world/
+</link>
+<title>
+Hello World
+</title>
+<description>
+&lt;h2 id=&quot;intro&quot;&gt;Intro&lt;/h2&gt;&lt;p&gt;As is often the case, I repeatedly started and subsequently abandoned creating my own page. Not necessarily for lack of content, more out of a vague feeling that the first post should be something truly awesome. I feel that Samak, my programming language, is at a point where it fits into that category, although it's still quite rough around the edges. So here goes!&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;/blog/img/animation.gif&quot; alt=&quot;Samak Logo&quot; /&gt;&lt;/p&gt;&lt;p&gt;Why even make a programming language?&lt;/p&gt;&lt;ol&gt;&lt;li&gt;It's fun, and instructive :)&lt;/li&gt;&lt;li&gt;To try and solve a number of problems I see with other languages&lt;/li&gt;&lt;li&gt;It's not actually a language, more like a different way to program&lt;/li&gt;&lt;/ol&gt;&lt;p&gt;So what problems do other languages have that Samak solves? This is just a rough overview, we'll go into details  below.&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Text is a terrible medium for code&lt;/strong&gt; - Samak stores all code in a database, &lt;a href='https://github.com/tonsky/datascript'&gt;Datascript&lt;/a&gt; in fact.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;State is the root of all evil&lt;/strong&gt; - All Samak functions are pure, everything side-effecty will have to be written in the host language&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Most languages try to be applicable to all kinds of problems&lt;/strong&gt; - Samak doesn't, it even makes an effort to avoid Turing completeness, which is harder and much more useful than it sounds&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Variable scope is complex and unflexible&lt;/strong&gt; - Samak is a concatenative language, so all scopes are explicit, and due to its piping concept, data can be passed wherever it is needed&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Static typing is great, static types are hard&lt;/strong&gt; - Samak will be able to do static typechecking, but more along the lines of Clojure's &lt;a href='https://github.com/clojure/core.typed'&gt;core.typed&lt;/a&gt;. Maps and vectors are a great model for arbitrary data, and embracing them in the type system can avoid a variety of issues that traditional type systems have.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Most projects today create systems, not isolated programs&lt;/strong&gt; - Samak Code can naturally be cut into pieces which can be run independently.&lt;/li&gt;&lt;li&gt;&lt;strong&gt;IDEs are terrible&lt;/strong&gt; - They evolved from text editors, it's hard to blame them. If we have all the code at our fingertips in a database, and if all state and scope is explicit, this unlocks tremendous power for tooling. Think live reloading, inspection and instrumentation.&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;Still here? Great! Let's dive into some code. Samak has lispy syntax, borrowing a lot from Clojure and in fact using the edn reader. The main reason is that it is tremendously easier to parse while playing around with different concepts. Hopefully this post will convince you that syntax shouldn't be the defining feature of a language though.&lt;/p&gt;&lt;h2 id=&quot;samak&amp;#95;tutorial&quot;&gt;Samak Tutorial&lt;/h2&gt;&lt;p&gt;The basic concepts of the language are explained very quickly. All the dirty, stateful stuff happens in pipes, which have to be written in the host language, e.g. Clojure. Pipes can be connected, pretty much like a bash oneliner:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;clojure&quot;&gt;&amp;#40;| stdin stdout&amp;#41; ; Basic Samak program that pipes stdin to stdout
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;In between the stateful pipes can be functions. Samak has a vast array of combinators, which yield functions of one argument that can be used between pipes. The easiest of them is &lt;code&gt;|&amp;gt;&lt;/code&gt;, which is just reversed functional composition, for easier readability.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;clojure&quot;&gt;&amp;#40;| stdin &amp;#40;|&amp;gt; parse-int inc str&amp;#41; stdout&amp;#41; ; reads int and prints increment
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;All primitives like numbers, strings, booleans and keywords are functions that take one argument and return themselves. To get the Clojure-y behavior of a key that looks itself up in a map, Samak uses &lt;code&gt;:-foo&lt;/code&gt; instead of &lt;code&gt;:foo&lt;/code&gt;. Another key difference from Clojure is the way maps and vectors behave when used as a function. In Samak, a datastructure is a function of one argument, which constructs a corresponding datastructure by applying its members to it.&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;clojure&quot;&gt;&amp;#40;&amp;#91;inc dec&amp;#93;  1&amp;#41; ; -&amp;gt; &amp;#91;2 0&amp;#93;
+&amp;#40;{:foo inc} 1&amp;#41; ; -&amp;gt; {:foo 2}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It's quite straightforward to see that this allows simple creation of nested datastructures. All pipes only produce and consume datastructures. A database pipe might take a description of a table to create, and there is a ui pipe which takes a datastructure and renders it as a react component:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;clojure&quot;&gt;&amp;#40;| stdin &amp;#91;:div &amp;#91;:h2 &amp;quot;you entered:&amp;quot;&amp;#93; &amp;#91;:p id&amp;#93;&amp;#93; ui&amp;#41; ; A paragraph of stdin
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;State is managed through reductions, e.g. a pipe that produces all intermediary results of a reduce:&lt;/p&gt;&lt;pre&gt;&lt;code class=&quot;clojure&quot;&gt;&amp;#40;| new-todos &amp;#40;reductions &amp;#40;concat :-state :-next&amp;#41;&amp;#41; todo-list&amp;#41;
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;And that is pretty much it. The result is an architecture with very explicit dataflow, which is both easy to reason about and easy to visualize&lt;/p&gt;&lt;p&gt;&lt;img src=&quot;/blog/img/oasis.svg&quot; alt=&quot;Samak editor: Oasis&quot; /&gt;&lt;/p&gt;&lt;p&gt;Example: Fetching and rendering from the chuck norris database&lt;/p&gt;&lt;p&gt;Since the pipes are linked with core.async, the program is naturally multithreaded and scales without any hassle and need for intricate concurrency programming.&lt;/p&gt;&lt;p&gt;I'll add some more background explanations, as well as some more in-depth examples in the coming weeks.&lt;/p&gt;
+</description>
+<pubDate>
+Thu, 14 Jun 2018 00:00:00 +0200
+</pubDate>
+</item>
+</channel>
+</rss>

@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Bundled Fibres: Hello World</title>
+    <link rel="canonical" href="http://rbuchmann.github.io/blog/posts-output/2018-6-14-hello-world/">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//fonts.googleapis.com/css?family=Alegreya:400italic,700italic,400,700" rel="stylesheet"
+          type="text/css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/css/bootstrap.min.css">
+    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.7.0/styles/default.min.css">
+    <link href="/blog/css/screen.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+
+
+<nav class="navbar navbar-default">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/blog/">Bundled Fibres</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav navbar-right">
+                <li ><a href="/blog/">Home</a></li>
+                <li
+                ><a href="/blog/archives/">Archives</a></li>
+                
+                <li
+                >
+                <a href="/blog/pages-output/about/">About</a>
+                </li>
+                
+                <li><a href="/blog/feed.xml">RSS</a></li>
+            </ul>
+        </div><!--/.nav-collapse -->
+    </div><!--/.container-fluid -->
+</nav>
+
+
+<div class="container">
+
+
+    <div class="row">
+        <div class="col-lg-9">
+            <div id="content">
+                
+<div id="post">
+    <div class="post-header">
+    <div id="post-meta" class="row">
+        <div class="col-lg-6">June 14, 2018</div>
+        
+    </div>
+    <h2>Hello World</h2>
+</div>
+<div>
+    <ol class="content"><li><a href="#intro">Intro</a></li><li><a href="#samak_tutorial">Samak Tutorial</a></li></ol>
+    <h2 id="intro">Intro</h2><p>As is often the case, I repeatedly started and subsequently abandoned creating my own page. Not necessarily for lack of content, more out of a vague feeling that the first post should be something truly awesome. I feel that Samak, my programming language, is at a point where it fits into that category, although it's still quite rough around the edges. So here goes!</p><p><img src="/blog/img/animation.gif" alt="Samak Logo" /></p><p>Why even make a programming language?</p><ol><li>It's fun, and instructive :)</li><li>To try and solve a number of problems I see with other languages</li><li>It's not actually a language, more like a different way to program</li></ol><p>So what problems do other languages have that Samak solves? This is just a rough overview, we'll go into details  below.</p><ul><li><strong>Text is a terrible medium for code</strong> - Samak stores all code in a database, <a href='https://github.com/tonsky/datascript'>Datascript</a> in fact.</li><li><strong>State is the root of all evil</strong> - All Samak functions are pure, everything side-effecty will have to be written in the host language</li><li><strong>Most languages try to be applicable to all kinds of problems</strong> - Samak doesn't, it even makes an effort to avoid Turing completeness, which is harder and much more useful than it sounds</li><li><strong>Variable scope is complex and unflexible</strong> - Samak is a concatenative language, so all scopes are explicit, and due to its piping concept, data can be passed wherever it is needed</li><li><strong>Static typing is great, static types are hard</strong> - Samak will be able to do static typechecking, but more along the lines of Clojure's <a href='https://github.com/clojure/core.typed'>core.typed</a>. Maps and vectors are a great model for arbitrary data, and embracing them in the type system can avoid a variety of issues that traditional type systems have.</li><li><strong>Most projects today create systems, not isolated programs</strong> - Samak Code can naturally be cut into pieces which can be run independently.</li><li><strong>IDEs are terrible</strong> - They evolved from text editors, it's hard to blame them. If we have all the code at our fingertips in a database, and if all state and scope is explicit, this unlocks tremendous power for tooling. Think live reloading, inspection and instrumentation.</li></ul><p>Still here? Great! Let's dive into some code. Samak has lispy syntax, borrowing a lot from Clojure and in fact using the edn reader. The main reason is that it is tremendously easier to parse while playing around with different concepts. Hopefully this post will convince you that syntax shouldn't be the defining feature of a language though.</p><h2 id="samak&#95;tutorial">Samak Tutorial</h2><p>The basic concepts of the language are explained very quickly. All the dirty, stateful stuff happens in pipes, which have to be written in the host language, e.g. Clojure. Pipes can be connected, pretty much like a bash oneliner:</p><pre><code class="clojure">&#40;| stdin stdout&#41; ; Basic Samak program that pipes stdin to stdout
+</code></pre><p>In between the stateful pipes can be functions. Samak has a vast array of combinators, which yield functions of one argument that can be used between pipes. The easiest of them is <code>|&gt;</code>, which is just reversed functional composition, for easier readability.</p><pre><code class="clojure">&#40;| stdin &#40;|&gt; parse-int inc str&#41; stdout&#41; ; reads int and prints increment
+</code></pre><p>All primitives like numbers, strings, booleans and keywords are functions that take one argument and return themselves. To get the Clojure-y behavior of a key that looks itself up in a map, Samak uses <code>:-foo</code> instead of <code>:foo</code>. Another key difference from Clojure is the way maps and vectors behave when used as a function. In Samak, a datastructure is a function of one argument, which constructs a corresponding datastructure by applying its members to it.</p><pre><code class="clojure">&#40;&#91;inc dec&#93;  1&#41; ; -&gt; &#91;2 0&#93;
+&#40;{:foo inc} 1&#41; ; -&gt; {:foo 2}
+</code></pre><p>It's quite straightforward to see that this allows simple creation of nested datastructures. All pipes only produce and consume datastructures. A database pipe might take a description of a table to create, and there is a ui pipe which takes a datastructure and renders it as a react component:</p><pre><code class="clojure">&#40;| stdin &#91;:div &#91;:h2 &quot;you entered:&quot;&#93; &#91;:p id&#93;&#93; ui&#41; ; A paragraph of stdin
+</code></pre><p>State is managed through reductions, e.g. a pipe that produces all intermediary results of a reduce:</p><pre><code class="clojure">&#40;| new-todos &#40;reductions &#40;concat :-state :-next&#41;&#41; todo-list&#41;
+</code></pre><p>And that is pretty much it. The result is an architecture with very explicit dataflow, which is both easy to reason about and easy to visualize</p><p><img src="/blog/img/oasis.svg" alt="Samak editor: Oasis" /></p><p>Example: Fetching and rendering from the chuck norris database</p><p>Since the pipes are linked with core.async, the program is naturally multithreaded and scales without any hassle and need for intricate concurrency programming.</p><p>I'll add some more background explanations, as well as some more in-depth examples in the coming weeks.</p>
+</div>
+
+<div id="post-tags">
+    <b>Tags: </b>
+    
+    <a href="/blog/tags-output/compiler/">compiler</a>
+    
+    <a href="/blog/tags-output/programming/">programming</a>
+    
+    <a href="/blog/tags-output/samak/">samak</a>
+    
+</div>
+
+
+    <div id="prev-next">
+        
+        
+    </div>
+
+    
+
+
+</div>
+
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div id="sidebar">
+                <h3>Links</h3>
+                <ul id="links">
+                    
+                    <li><a href="http://freiheit.com">Freiheit.com - Where I work</a></li>
+                    <li><a href="http://cryogenweb.org">Made with Cryogen</a></li>
+                </ul>
+                
+                <div id="recent">
+                    <h3>Recent Posts</h3>
+                    <ul>
+                        
+                        <li><a href="/blog/posts-output/2018-6-14-hello-world/">Hello World</a></li>
+                        
+                    </ul>
+                </div>
+                
+                
+                <div id="tags">
+                    <h3>Tags</h3>
+                    <ul>
+                        
+                        <li><a href="/blog/tags-output/compiler/">compiler</a></li>
+                        
+                        <li><a href="/blog/tags-output/programming/">programming</a></li>
+                        
+                        <li><a href="/blog/tags-output/samak/">samak</a></li>
+                        
+                    </ul>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+    <footer>Copyright &copy; 2018 Rasmus Buchmann
+        <p style="text-align: center;">Powered by <a href="http://cryogenweb.org">Cryogen</a></p></footer>
+</div>
+<script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.0/js/bootstrap.min.js"></script>
+<script src="/blog/js/highlight.pack.js" type="text/javascript"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+
+
+</body>
+</html>
